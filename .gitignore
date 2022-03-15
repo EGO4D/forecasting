@@ -1,0 +1,8 @@
+*.log
+*.pyc
+dist/
+*.egg-info
+lightning_logs/
+.vscode/
+pretrained_models/
+data/
