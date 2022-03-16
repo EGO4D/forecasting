@@ -4,7 +4,7 @@ setup(
     name='ego4d_forecasting',
 	version='1.0.0',
 	description='EGO4D Forecasting Benchmark code',
-    packages=find_packages(),
+    packages=find_packages(exclude=('scripts',)),
     url='https://github.com/EGO4D/forecasting',
     install_requires=[
 		"torch==1.9.0",
