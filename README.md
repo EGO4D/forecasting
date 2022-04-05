@@ -26,6 +26,7 @@ In order to make the `ego4d` module loadable, you should add the current directo
 Please note that the command above is not persistent and hence you should run it every time you open a new shell.
 
 ## Using the code
-Please refer to the following README files to use the short-term and long-term anticipation code:
+Please refer to the following README files for the benchmark specific code/instructions:
  * [Short-Term Object Interaction Anticipation](SHORT_TERM_ANTICIPATION.md)
  * [Long-Term Action Anticipation](LONG_TERM_ANTICIPATION.md)
+ * [Future Hand Prediction](Ego4D-Future-Hand-Prediction/README.md)
