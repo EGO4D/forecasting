@@ -1,3 +1,9 @@
+**[NEW!] 2022 Ego4D Challenges now open for Forecasting**
+- [Short Term Anticipation](https://eval.ai/web/challenges/challenge-page/1623/overview) (deadline June 1 2022)
+- [Long Term Anticipation](https://eval.ai/web/challenges/challenge-page/1598/overview) (deadline June 1 2022)
+- [Future Hand Prediction](https://eval.ai/web/challenges/challenge-page/1630/overview) (deadline Oct 1 2022)
+
+
 # EGO4D Forecasting Benchmark
 
 This repository contains code to replicate the results of the [EGO4D Forecasting Benchmark](https://ego4d-data.org/docs/benchmarks/forecasting/) in [Ego4D: Around the World in 3,000 Hours of Egocentric Video](https://arxiv.org/abs/2110.07058).
