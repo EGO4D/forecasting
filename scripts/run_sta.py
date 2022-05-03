@@ -2,12 +2,12 @@ import os
 import pickle
 import pprint
 
-import ego4d.utils.logging as logging
+import ego4d_forecasting.utils.logging as logging
 import numpy as np
 import torch
-from ego4d.tasks.short_term_anticipation import ShortTermAnticipationTask
-from ego4d.utils.c2_model_loading import get_name_convert_func
-from ego4d.utils.parser import load_config, parse_args
+from ego4d_forecasting.tasks.short_term_anticipation import ShortTermAnticipationTask
+from ego4d_forecasting.utils.c2_model_loading import get_name_convert_func
+from ego4d_forecasting.utils.parser import load_config, parse_args
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from scripts.slurm import copy_and_run_with_config

@@ -7,7 +7,7 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import itertools
 import json
-from ego4d.datasets.short_term_anticipation import PyAVVideoReader, Ego4DHLMDB
+from ego4d_forecasting.datasets.short_term_anticipation import PyAVVideoReader, Ego4DHLMDB
 from collections import defaultdict
 
 parser = ArgumentParser()
