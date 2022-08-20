@@ -80,7 +80,7 @@ class Ego4dhand(torch.utils.data.Dataset):
         Construct the video loader.
         """
         path_to_file = os.path.join(
-            self.cfg.DATA.PATH_TO_DATA_DIR, "{}.json".format(self.mode)
+            self.cfg.DATA.PATH_TO_DATA_DIR, "fho_hands_{}.json".format(self.mode)
         )
         assert g_pathmgr.exists(path_to_file), "{} dir not found".format(
             path_to_file
@@ -90,104 +90,109 @@ class Ego4dhand(torch.utils.data.Dataset):
         self._labels_masks = []
         self._spatial_temporal_idx = []
         f = open(path_to_file)
-        data = json.load(f)
+        # data = json.load(f)
+        data = dict(list(json.load(f).items())[5:])
         f.close()
-        # print(self._num_clips)
         clip_idx=0
         for clip_id, hand_dicts in data.items():
             for hand_annot in hand_dicts:
-                pre45_frame = hand_annot['pre_45'][0]
-                clip_name = clip_id+'_'+str(pre45_frame-1)
-                for idx in range(self._num_clips):
-                    self._spatial_temporal_idx.append(idx)
-                    self._video_meta[clip_idx * self._num_clips + idx] = {}
-                    label=[]
-                    label_mask=[]
-                    self._path_to_ant_videos.append(
-                            os.path.join(self.cfg.DATA.PATH_TO_DATA_DIR, 'cropped_videos_ant', clip_name+'.mp4')
-                        )
-                    #placeholder for the 1x20 hand gt vector (padd zero when GT is not available)
-                    # 5 frames have the following order: pre_45, pre_40, pre_15, pre, contact
-                    # GT for each frames has the following order: left_x,left_y,right_x,right_y
-                    label= [0.0]*20
-                    label_mask = [0.0]*20
-                    for frame_type, frame_annot in hand_annot.items():
-                        if frame_type in ['start_sec', 'end_sec','height', 'width']:
-                            continue
-                        frame_gt = frame_annot[1]
-                        if frame_type == 'pre_45':
-                            for single_hand in frame_gt:
-                                if 'left_hand' in single_hand:
-                                    label_mask[0]=1.0
-                                    label_mask[1]=1.0
-                                    label[0]= single_hand['left_hand'][0]
-                                    label[1]= single_hand['left_hand'][1]
-                                if 'right_hand' in single_hand:
-                                    label_mask[2]=1.0
-                                    label_mask[3]=1.0
-                                    label[2]= single_hand['right_hand'][0]
-                                    label[3]= single_hand['right_hand'][1]   
-                        if frame_type == 'pre_30':
-                            for single_hand in frame_gt:
-                                if 'left_hand' in single_hand:
-                                    label_mask[4]=1.0
-                                    label_mask[5]=1.0
-                                    label[4]= single_hand['left_hand'][0]
-                                    label[5]= single_hand['left_hand'][1]
-                                if 'right_hand' in single_hand:
-                                    label_mask[6]=1.0
-                                    label_mask[7]=1.0
-                                    label[6]= single_hand['right_hand'][0]
-                                    label[7]= single_hand['right_hand'][1]   
-                        if frame_type == 'pre_15':
-                            for single_hand in frame_gt:
-                                if 'left_hand' in single_hand:
-                                    label_mask[8]=1.0
-                                    label_mask[9]=1.0
-                                    label[8]= single_hand['left_hand'][0]
-                                    label[9]= single_hand['left_hand'][1]
-                                if 'right_hand' in single_hand:
-                                    label_mask[10]=1.0
-                                    label_mask[11]=1.0
-                                    label[10]= single_hand['right_hand'][0]
-                                    label[11]= single_hand['right_hand'][1]   
-                        if frame_type == 'pre_frame':
-                            for single_hand in frame_gt:
-                                if 'left_hand' in single_hand:
-                                    label_mask[12]=1.0
-                                    label_mask[13]=1.0
-                                    label[12]= single_hand['left_hand'][0]
-                                    label[13]= single_hand['left_hand'][1]
-                                if 'right_hand' in single_hand:
-                                    label_mask[14]=1.0
-                                    label_mask[15]=1.0
-                                    label[14]= single_hand['right_hand'][0]
-                                    label[15]= single_hand['right_hand'][1]    
-                        if frame_type == 'contact_frame':
-                            for single_hand in frame_gt:
-                                if 'left_hand' in single_hand:
-                                    label_mask[16]=1.0
-                                    label_mask[17]=1.0
-                                    label[16]= single_hand['left_hand'][0]
-                                    label[17]= single_hand['left_hand'][1]
-                                if 'right_hand' in single_hand:
-                                    label_mask[18]=1.0
-                                    label_mask[19]=1.0
-                                    label[18]= single_hand['right_hand'][0]
-                                    label[19]= single_hand['right_hand'][1]   
-                    self._labels.append(label)
-                    self._labels_masks.append(label_mask)
-                clip_idx+=1  
-        assert (
-            len(self._path_to_ant_videos) > 0
-        ), "Failed to load Ego4D split {} from {}".format(
-            self._split_idx, path_to_file
-        )
-        logger.info(
-            "Constructing Ego4D dataloader (size: {}) from {}".format(
-                len(self._path_to_ant_videos), path_to_file
+                clip_id = hand_annot['clip_id']
+                for annot in hand_annot['frames']:
+                    pre45_frame = annot['pre_45']['frame']
+                    clip_name = str(clip_id)+'_'+str(pre45_frame-1)
+                    for idx in range(self._num_clips):
+                        self._spatial_temporal_idx.append(idx)
+                        self._video_meta[clip_idx * self._num_clips + idx] = {}
+                        label=[]
+                        label_mask=[]
+                        self._path_to_ant_videos.append(
+                                os.path.join(self.cfg.DATA.PATH_TO_DATA_DIR, 'cropped_videos_ant', clip_name+'.mp4')
+                            )
+                        #placeholder for the 1x20 hand gt vector (padd zero when GT is not available)
+                        # 5 frames have the following order: pre_45, pre_40, pre_15, pre, contact
+                        # GT for each frames has the following order: left_x,left_y,right_x,right_y
+                        label= [0.0]*20
+                        label_mask = [0.0]*20
+                        # for frame_type, frame_annot in hand_annot.items():
+                        for frame_type, frame_annot in annot.items():
+                            # if frame_type in ['start_sec', 'end_sec','height', 'width']:
+                            if frame_type in ["action_start_sec", "action_end_sec","action_start_frame","action_end_frame","action_clip_start_sec","action_clip_end_sec","action_clip_start_frame","action_clip_end_frame"]:
+                                continue
+                            # frame_gt = frame_annot[1]
+                            frame_gt = frame_annot['boxes']
+                            if frame_type == 'pre_45':
+                                for single_hand in frame_gt:
+                                    if 'left_hand' in single_hand:
+                                        label_mask[0]=1.0
+                                        label_mask[1]=1.0
+                                        label[0]= single_hand['left_hand'][0]
+                                        label[1]= single_hand['left_hand'][1]
+                                    if 'right_hand' in single_hand:
+                                        label_mask[2]=1.0
+                                        label_mask[3]=1.0
+                                        label[2]= single_hand['right_hand'][0]
+                                        label[3]= single_hand['right_hand'][1]   
+                            if frame_type == 'pre_30':
+                                for single_hand in frame_gt:
+                                    if 'left_hand' in single_hand:
+                                        label_mask[4]=1.0
+                                        label_mask[5]=1.0
+                                        label[4]= single_hand['left_hand'][0]
+                                        label[5]= single_hand['left_hand'][1]
+                                    if 'right_hand' in single_hand:
+                                        label_mask[6]=1.0
+                                        label_mask[7]=1.0
+                                        label[6]= single_hand['right_hand'][0]
+                                        label[7]= single_hand['right_hand'][1]   
+                            if frame_type == 'pre_15':
+                                for single_hand in frame_gt:
+                                    if 'left_hand' in single_hand:
+                                        label_mask[8]=1.0
+                                        label_mask[9]=1.0
+                                        label[8]= single_hand['left_hand'][0]
+                                        label[9]= single_hand['left_hand'][1]
+                                    if 'right_hand' in single_hand:
+                                        label_mask[10]=1.0
+                                        label_mask[11]=1.0
+                                        label[10]= single_hand['right_hand'][0]
+                                        label[11]= single_hand['right_hand'][1]   
+                            if frame_type == 'pre_frame':
+                                for single_hand in frame_gt:
+                                    if 'left_hand' in single_hand:
+                                        label_mask[12]=1.0
+                                        label_mask[13]=1.0
+                                        label[12]= single_hand['left_hand'][0]
+                                        label[13]= single_hand['left_hand'][1]
+                                    if 'right_hand' in single_hand:
+                                        label_mask[14]=1.0
+                                        label_mask[15]=1.0
+                                        label[14]= single_hand['right_hand'][0]
+                                        label[15]= single_hand['right_hand'][1]    
+                            if frame_type == 'contact_frame':
+                                for single_hand in frame_gt:
+                                    if 'left_hand' in single_hand:
+                                        label_mask[16]=1.0
+                                        label_mask[17]=1.0
+                                        label[16]= single_hand['left_hand'][0]
+                                        label[17]= single_hand['left_hand'][1]
+                                    if 'right_hand' in single_hand:
+                                        label_mask[18]=1.0
+                                        label_mask[19]=1.0
+                                        label[18]= single_hand['right_hand'][0]
+                                        label[19]= single_hand['right_hand'][1]   
+                        self._labels.append(label)
+                        self._labels_masks.append(label_mask)
+                    clip_idx+=1  
+            assert (
+                len(self._path_to_ant_videos) > 0
+            ), "Failed to load Ego4D split {} from {}".format(
+                self._split_idx, path_to_file
             )
-        )
+            logger.info(
+                "Constructing Ego4D dataloader (size: {}) from {}".format(
+                    len(self._path_to_ant_videos), path_to_file
+                )
+            )
 
     def __getitem__(self, index):
         """
