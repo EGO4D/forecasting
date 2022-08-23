@@ -36,3 +36,4 @@ Please refer to the following README files for the benchmark specific code/instr
  * [Short-Term Object Interaction Anticipation](SHORT_TERM_ANTICIPATION.md)
  * [Long-Term Action Anticipation](LONG_TERM_ANTICIPATION.md)
  * [Future Hand Prediction](Ego4D-Future-Hand-Prediction/README.md)
+ * [Future Locomotion Prediction](Ego4D-Future-Locomotion/README.md)
