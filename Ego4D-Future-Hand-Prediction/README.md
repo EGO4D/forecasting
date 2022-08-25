@@ -34,11 +34,11 @@ python tools/run_net.py --cfg /path/to/Ego4D-Future-Hand-Prediction/configs/Ego4
 ```
 
 ## Submission and Evaluation:
-- Generate inference results on test set (defaulted as output.pkl) for evaluation.  
+- Generate inference results on test set (defaulted as output.pkl) for evaluation  
 ```shell
 python tools/run_net.py --cfg /path/to/Ego4D-Future-Hand-Prediction/configs/Ego4D/I3D_8x8_R50.yaml TRAIN.ENABLE False
 ```
-- Generate submission file for evalai platform: 
+- Generate submission file for [evalai](https://eval.ai/web/challenges/challenge-page/1630/overview) platform 
 ```shell
 python tools/generate_submission.py /path/to/output.pkl 30
 ```
