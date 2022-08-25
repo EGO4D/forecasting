@@ -51,7 +51,7 @@ python tools/eval.py /path/to/output.pkl 30
 
 
 ## Important directories and explanation: 
-| Directory | Location | Describe |
+| Directory | Location | Description |
 | --------- | -------- | -------- |
 | cropped_videos_ant | ./slowfast/datasets/ego4dhand.py | Put your rescaled video clips in this folder |
 | PATH_TO_DATA_DIR: ../data-path/ | ./configs/Ego4D/I3D_8x8_R50.yaml | Put your cropped_videos_ant folder and annotation folders under this path |
