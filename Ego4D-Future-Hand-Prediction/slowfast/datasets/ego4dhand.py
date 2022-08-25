@@ -68,6 +68,7 @@ class Ego4dhand(torch.utils.data.Dataset):
         if self.mode in ["train", "val", "trainval"]:
             self._num_clips = 1
         elif self.mode in ["test"]:
+            self.mode = "test_unannotated"
             self._num_clips = (
                 cfg.TEST.NUM_ENSEMBLE_VIEWS * cfg.TEST.NUM_SPATIAL_CROPS
             )
@@ -80,7 +81,7 @@ class Ego4dhand(torch.utils.data.Dataset):
         Construct the video loader.
         """
         path_to_file = os.path.join(
-            self.cfg.DATA.PATH_TO_DATA_DIR, "fho_hands_{}.json".format(self.mode)
+            self.cfg.DATA.PATH_TO_DATA_DIR, "annotations/fho_hands_{}.json".format(self.mode)
         )
         assert g_pathmgr.exists(path_to_file), "{} dir not found".format(
             path_to_file
@@ -119,6 +120,8 @@ class Ego4dhand(torch.utils.data.Dataset):
                             if frame_type in ["action_start_sec", "action_end_sec","action_start_frame","action_end_frame","action_clip_start_sec","action_clip_end_sec","action_clip_start_frame","action_clip_end_frame"]:
                                 continue
                             # frame_gt = frame_annot[1]
+                            if len(frame_annot)==2:
+                                continue
                             frame_gt = frame_annot['boxes']
                             if frame_type == 'pre_45':
                                 for single_hand in frame_gt:
@@ -182,17 +185,17 @@ class Ego4dhand(torch.utils.data.Dataset):
                                         label[19]= single_hand['right_hand'][1]   
                         self._labels.append(label)
                         self._labels_masks.append(label_mask)
-                    clip_idx+=1  
-            assert (
-                len(self._path_to_ant_videos) > 0
-            ), "Failed to load Ego4D split {} from {}".format(
-                self._split_idx, path_to_file
+                    clip_idx+=1
+        assert (
+            len(self._path_to_ant_videos) > 0
+        ), "Failed to load Ego4D split {} from {}".format(
+            self._split_idx, path_to_file
+        )
+        logger.info(
+            "Constructing Ego4D dataloader (size: {}) from {}".format(
+                len(self._path_to_ant_videos), path_to_file
             )
-            logger.info(
-                "Constructing Ego4D dataloader (size: {}) from {}".format(
-                    len(self._path_to_ant_videos), path_to_file
-                )
-            )
+        )
 
     def __getitem__(self, index):
         """
@@ -238,7 +241,7 @@ class Ego4dhand(torch.utils.data.Dataset):
                         / self.cfg.MULTIGRID.DEFAULT_S
                     )
                 )
-        elif self.mode in ["test"]:
+        elif self.mode in ["test_unannotated"]:
             temporal_sample_index = (
                 self._spatial_temporal_idx[index]
                 // self.cfg.TEST.NUM_SPATIAL_CROPS

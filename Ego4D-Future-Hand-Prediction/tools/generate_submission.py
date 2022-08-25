@@ -27,23 +27,16 @@ class NumpyEncoder(json.JSONEncoder):
 
 def main(output_file, num_clips=30):
   with open(output_file, 'rb') as f:
-    preds_list, labels_list, clip_idx, frm_idx = pickle.load(f)
-
-  left_list= []
-  right_list= [] 
-  left_final_list=[]
-  right_final_list=[]
+    preds_list, clip_idx, frm_idx = pickle.load(f)
 
   pred_dict={}
   for i in range(len(preds_list)):
     preds = preds_list[i].numpy()
-    labels = labels_list[i].numpy()
     clips = clip_idx[i].cpu().numpy()
     frms = frm_idx[i].cpu().numpy()
 
     for j in range(len(preds)):
       pred = preds[j]
-      label=labels[j]
       clip = clips[j]
       frm = frms[j]
       video_id = str(int(clip)) + '_' + str(int(frm))
@@ -52,9 +45,6 @@ def main(output_file, num_clips=30):
         pred_dict[video_id] += pred
       else:
         pred_dict[video_id] = pred
-
-  for k,v in pred_dict.items():
-    pred = v/num_clips
 
   dumped = json.dumps(pred_dict, cls=NumpyEncoder)
   with open('submission.json', 'a') as f:
