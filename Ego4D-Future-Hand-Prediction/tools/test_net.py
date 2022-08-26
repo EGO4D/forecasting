@@ -22,39 +22,6 @@ from slowfast.utils.meters import TestMeter
 
 logger = logging.get_logger(__name__)
 
-def to_onehot(indices, num_classes):
-    """Convert a tensor of indices of any shape `(N, ...)` to a
-    tensor of one-hot indicators of shape `(N, num_classes, ...)`.
-    """
-    onehot = torch.zeros(indices.shape[0],
-                        num_classes,
-                        *indices.shape[1:],
-                        device=indices.device)
-    return onehot.scatter_(1, indices.unsqueeze(1), 1)
-
-def mean_class_accuracy(cm):
-    """Compute mean class accuracy based on the input confusion matrix"""
-    # Increase floating point precision
-    cm = cm.type(torch.float64)
-    cls_cnt = cm.sum(dim=1) + 1e-15
-    cls_hit = cm.diag()
-    cls_acc = (cls_hit/cls_cnt).mean().item()
-    return cls_acc
-
-def confusion_matrix(pred, target):
-    num_classes = pred.shape[1]
-    assert pred.shape[0] == target.shape[0]
-    with torch.no_grad():
-        target_ohe = to_onehot(target, num_classes)
-        target_ohe_t = target_ohe.transpose(0, 1).float()
-
-        pred_idx = torch.argmax(pred, dim=1)
-        pred_ohe = to_onehot(pred_idx.reshape(-1), num_classes)
-        pred_ohe = pred_ohe.float()
-
-        confusion_matrix = torch.matmul(target_ohe_t, pred_ohe)
-    return confusion_matrix
-
 @torch.no_grad()
 def perform_test(test_loader, model, test_meter, cfg, writer=None):
     """
@@ -80,14 +47,12 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
     model.eval()
     test_meter.iter_tic()
 
-    meta_list=[]
-    labels_list=[]
     preds_list=[]
     video_idx_list=[]
     clip_idx_list=[]
     frm_idx_list=[]
 
-    for cur_iter, (inputs, labels, masks, video_idx, meta) in enumerate(test_loader):
+    for cur_iter, (inputs, _, _, video_idx, meta) in enumerate(test_loader):
         if cfg.NUM_GPUS:
             if isinstance(inputs, (list,)):
                 for i in range(len(inputs)):
@@ -95,7 +60,6 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             else:
                 inputs = inputs.cuda(non_blocking=True)
 
-            labels = labels.cuda()
             video_idx = video_idx.cuda()
         clip_idx=[]
         frm_idx=[]
@@ -106,52 +70,34 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             frm_idx.append(frm_id)
         clip_idx = torch.FloatTensor(clip_idx).cuda()
         frm_idx = torch.FloatTensor(frm_idx).cuda()
-        # print(clip_idx, frm_idx)
-        # print(len(clip_idx), len(frm_idx))
 
         test_meter.data_toc()
         preds = model(inputs)
         if cfg.NUM_GPUS > 1:
-            # print(atten_map.size())
-            # preds, labels, video_idx = du.all_gather(
-            #    [preds, labels, video_idx]
-            # )
-            preds, labels, video_idx, clip_idx, frm_idx = du.all_gather(
-               [preds, labels, video_idx, clip_idx, frm_idx]
+            preds, video_idx, clip_idx, frm_idx = du.all_gather(
+               [preds, video_idx, clip_idx, frm_idx]
             )
-            # print(preds.size())
-            labels_list.append(labels.cpu())
             preds_list.append(preds.cpu())
             video_idx_list.append(video_idx.cpu())
             clip_idx_list.append(clip_idx.cpu())
             frm_idx_list.append(frm_idx.cpu())
-            # print(clip_idx, frm_idx)
-            # print(len(labels_list))
-            # print(len(preds_list))
-            # print(len(video_idx_list))
-            # print(len(clip_idx_list))
-            # print(len(frm_idx_list))
-            # print('**********************************')
             
 
         if cfg.NUM_GPUS:
             preds = preds.cpu()
-            labels = labels.cpu()
             video_idx = video_idx.cpu()
 
         test_meter.iter_toc()
         test_meter.log_iter_stats(cur_iter)
         test_meter.iter_tic()
-        # if cur_iter == 100:
-        #     break
+
     if cfg.TEST.SAVE_RESULTS_PATH != "":
         save_path = os.path.join(cfg.OUTPUT_DIR, cfg.TEST.SAVE_RESULTS_PATH)
         
         if du.is_root_proc():
             print(save_path)
             with g_pathmgr.open(save_path, "wb") as f:
-                # pickle.dump([preds_list,labels_list, videoid_list], f)
-                pickle.dump([preds_list, labels_list, clip_idx_list, frm_idx_list], f)
+                pickle.dump([preds_list, clip_idx_list, frm_idx_list], f)
 
             logger.info(
                 "Successfully saved prediction results to {}".format(save_path)
