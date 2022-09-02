@@ -12,6 +12,11 @@ This repository contains code to replicate the results of the [EGO4D Forecasting
 
 For more information on Ego4D or to download the dataset, read: [Start Here](https://ego4d-data.org/docs/start-here/).
 
+## Colab Quickstart
+
+Want to understand the benchmarks at a high-level? Here's are some quickstarts:
+- [![Open in Colab][Colab Badge]](https://colab.research.google.com/drive/1Ok_6F1O6K8kX1S4sEnU62HoOBw_CPngR?usp=sharing)
+
 ## Installation
 This code requires Python>=3.7 (this a requirement of pytorch video). If you are using Anaconda, you can create a clean virtual environment with the required Python version with the following command:
 
@@ -37,3 +42,6 @@ Please refer to the following README files for the benchmark specific code/instr
  * [Long-Term Action Anticipation](LONG_TERM_ANTICIPATION.md)
  * [Future Hand Prediction](Ego4D-Future-Hand-Prediction/README.md)
  * [Future Locomotion Prediction](Ego4D-Future-Locomotion/README.md)
+ * [Future Hand Prediction](Ego4D-Future-Hand-Prediction/README.md)
+
+[Colab Badge]:          https://colab.research.google.com/assets/colab-badge.svg
