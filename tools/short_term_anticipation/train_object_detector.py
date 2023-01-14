@@ -1,6 +1,3 @@
-from argparse import ArgumentParser
-from pathlib import Path
-
 from detectron2.utils.logger import setup_logger
 setup_logger()
 
@@ -11,6 +8,7 @@ from detectron2.data.datasets import register_coco_instances
 from detectron2.engine import DefaultTrainer, default_argument_parser, default_setup, hooks, launch
 from detectron2.evaluation import COCOEvaluator
 from detectron2.data import DatasetCatalog, MetadataCatalog
+
 
 bases = {
     'faster_rcnn' : {
@@ -64,41 +62,31 @@ def main(args):
     if args.base_lr is not None:
         cfg.SOLVER.BASE_LR = args.base_lr
 
+    if args.batch_size is not None:
+        cfg.SOLVER.IMS_PER_BATCH = args.batch_size
+
     with open(os.path.join(args.output_dir, 'config.yaml'),'w') as f:
         f.write(cfg.dump())
 
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+    print("cfg=", cfg)
+
     trainer = MyTrainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
 
-if __name__ == '__main__':
-    parser = ArgumentParser()
 
-    parser.add_argument('path_to_train_json', type=Path)
-    parser.add_argument('path_to_val_json', type=Path)
-    parser.add_argument('path_to_images', type=Path)
-    parser.add_argument('output_dir', type=Path)
-    parser.add_argument('--num_gpus', type=int, default=4)
-    parser.add_argument('--checkpoint_period', type=int, default=5000)
-    parser.add_argument('--eval_period', type=int, default=5000)
-    parser.add_argument('--base', type=str, default='R50_FPN_3x')
-    parser.add_argument('--arch', type=str, default='faster_rcnn')
-    parser.add_argument('--base_lr', type=float, default=0.001)
-    parser.add_argument('--port_aug', type=int, default=0)
-
-    args = parser.parse_args()
-
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-
-    port = 2 ** 15 + 2 ** 14 + hash(os.getuid() if sys.platform != "win32" else 1) % 2 ** 14 + args.port_aug
-
+def run_main(args):
+    # main(args)
     launch(
         main,
         args.num_gpus,
         num_machines=1,
         machine_rank=0,
-        dist_url=f'tcp://127.0.0.1:{port}',
+        dist_url=f'tcp://127.0.0.1:{args.port}',
         args=(args,)
     )
 
+
+if __name__ == '__main__':
+    print("please defer to scripts/run_obj_det.py", flush=True)

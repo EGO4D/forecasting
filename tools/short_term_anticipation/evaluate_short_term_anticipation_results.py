@@ -125,6 +125,7 @@ validate_results(results, annotations)
 
 map = STAMeanAveragePrecision(top_k=5)
 c=0
+num_missing = 0
 for ann in tqdm(annotations['annotations']):
     uid = ann['uid']
         
@@ -147,8 +148,11 @@ for ann in tqdm(annotations['annotations']):
         }
     else:
         pred = {}
+        num_missing += 1
 
     map.add(pred,gt)
+
+print("missing=", num_missing, "#anns=", len(annotations["annotations"]))
     
 scores = map.evaluate()
 

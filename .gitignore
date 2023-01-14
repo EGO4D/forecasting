@@ -6,3 +6,4 @@ lightning_logs/
 .vscode/
 pretrained_models/
 data/
+experiments*

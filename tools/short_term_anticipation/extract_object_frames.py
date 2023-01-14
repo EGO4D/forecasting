@@ -33,13 +33,13 @@ frame_numbers = []
 
 for ann in [train, val, test]:
     for x in ann['annotations']:
-        fname = args.fname_format.format(video_uid=x["video_uid"], frame_number=x["frame"])
+        fname = args.fname_format.format(video_uid=x.get("video_uid", x.get("video_id", None)), frame_number=x["frame"])
         names.append(fname)
         if args.clips:
             video_ids.append(x['clip_uid'])
             frame_numbers.append(x['clip_frame'])
         else:
-            video_ids.append(x['video_uid'])
+            video_ids.append(x.get('video_uid', x.get('video_id')))
             frame_numbers.append(x['frame'])
 
 #images = sorted(images)
@@ -82,9 +82,13 @@ def process_video(argss):
     fname, frames, names = argss
     vr = PyAVVideoReader(fname)
 
-    video_frames = vr[frames]
+    video_frames_by_fn = vr[frames]
+    assert len(set(frames) - set(video_frames_by_fn.keys())) == 0
+    fname_idx = {fn: idx for idx, fn in enumerate(frames)}
 
-    for vf, nam in zip(video_frames, names):
+    for fn, vf in video_frames_by_fn.items():
+        idx = fname_idx[fn]
+        nam = names[idx]
         imname = str(args.path_to_output / f"{nam}")
         cv2.imwrite(imname, vf)
 
@@ -95,11 +99,9 @@ for g in df.groupby('video'):
     frames = g[1]['frame'].values
     names = g[1]['name'].values
 
-    params.append((fname, frames,names))
+    params.append((fname, frames, names))
 
 pool = multiprocessing.Pool(processes=args.jobs)
 
 for _ in tqdm(pool.imap_unordered(process_video, params), total=len(params)):
     pass
-
-

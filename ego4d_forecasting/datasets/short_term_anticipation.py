@@ -1,3 +1,4 @@
+import copy
 import io
 import os
 import cv2
@@ -223,6 +224,8 @@ class PyAVVideoReader(object):
             frame_list=[int(f) for f in frame_list]
         else:
             frame_list = list(frame_list)
+        frame_list = copy.deepcopy(frame_list)
+        frame_list = sorted(frame_list)
         
         with av.open(self.path_to_video) as input_video:
             frames = _get_frames(frame_list, input_video, include_audio=self.include_audio, audio_buffer_frames=self.audio_buffer_frames)
@@ -230,7 +233,10 @@ class PyAVVideoReader(object):
         frames = [f.to_ndarray(format="bgr24") if f is not None else None for f in frames]
         if self.height is not None:
             frames = [imutils.resize(f, height=self.height) if f is not None else None for f in frames]
-        return frames
+        return {
+            fn: f
+            for fn, f in zip(frame_list, frames)
+        }
 
 
 
@@ -602,11 +608,7 @@ class Ego4dShortTermAnticipation(torch.utils.data.Dataset):
         vr = PyAVVideoReader(video_filename, height=320)
 
         frames = (
-                frame_number
-                - np.arange(
-            self.cfg.DATA.NUM_FRAMES * self.cfg.DATA.SAMPLING_RATE,
-            step=self.cfg.DATA.SAMPLING_RATE,
-            )[::-1]
+            frame_number - np.arange(self.cfg.DATA.NUM_FRAMES * self.cfg.DATA.SAMPLING_RATE, step=self.cfg.DATA.SAMPLING_RATE)[::-1]
         )
         frames[frames < 1] = 1
 
@@ -614,7 +616,7 @@ class Ego4dShortTermAnticipation(torch.utils.data.Dataset):
 
         imgs = vr[frames]
         
-        return imgs
+        return [imgs[fn] for fn in frames]
 
     def _load_frames_pytorch_video(self, video_filename, frame_number, fps):
         clip_duration = (
@@ -679,7 +681,7 @@ class Ego4dShortTermAnticipation(torch.utils.data.Dataset):
         uid = ann['uid']
 
         # get video_id, frame_number, gt_boxes, gt_noun_labels, gt_verb_labels and gt_ttc_targets
-        video_id = ann["video_uid"]
+        video_id = ann.get("video_uid", ann.get("video_id", None))
         frame_number = ann['frame']
 
         if 'objects' in ann:
