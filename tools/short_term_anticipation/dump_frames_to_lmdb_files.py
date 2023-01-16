@@ -34,12 +34,12 @@ class PyAVSTADataset(Dataset):
         self.path_to_videos = path_to_videos
         self.retry = retry
         if args.video_uid is not None:
-            annotations = [a for a in annotations if a["video_uid"] in args.video_uid]
+            annotations = [a for a in annotations if a.get("video_uid", a.get("video_id", None)) in args.video_uid]
 
         frames_per_video = defaultdict(list)
 
         for ann in annotations:
-            video_id = ann["video_uid"]
+            video_id = ann.get("video_uid", ann.get("video_id", None))
             last_frame = ann["frame"]
             first_frame = np.max([0, last_frame - args.context_frames+1])
             frame_numbers = np.arange(first_frame, last_frame+1)
@@ -91,7 +91,7 @@ class PyAVSTADataset(Dataset):
             imgs = vr[frame_numbers]
 
             added=0
-            for f, img in zip(frame_numbers, imgs):
+            for f, img in imgs.items():
                 if img is not None:
                     frames[f] = img
                     added+=1
@@ -128,7 +128,7 @@ l = Ego4DHLMDB(args.path_to_output_lmdbs)
 
 ## Define the dataset and dataloader
 dset = PyAVSTADataset(annotations, args.path_to_videos, existing_keys=l.get_existing_keys())
-dloader = DataLoader(dset, batch_size=args.batch_size, collate_fn=collate, num_workers=8)
+dloader = DataLoader(dset, batch_size=args.batch_size, collate_fn=collate, num_workers=40)
 
 ## Iterate over the dataloader
 for (frames, keys) in tqdm(dloader):

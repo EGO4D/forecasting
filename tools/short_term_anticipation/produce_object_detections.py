@@ -1,17 +1,13 @@
 """This script can be used to extract object detections from the annotated frames"""
 from argparse import ArgumentParser
 from pathlib import Path
-import pandas as pd
 from tqdm import tqdm
-import pickle
 import json
 
 from detectron2.config import get_cfg
-from os.path import join
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 import cv2
-import numpy as np
 
 parser = ArgumentParser()
 parser.add_argument('path_to_checkpoint', type=Path)
