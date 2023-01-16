@@ -7,7 +7,7 @@ import cv2
 import multiprocessing
 from tqdm import tqdm
 import os
-from ego4d.datasets.short_term_anticipation import PyAVVideoReader
+from ego4d_forecasting.datasets.short_term_anticipation import PyAVVideoReader
 
 parser = ArgumentParser()
 parser.add_argument('path_to_annotations', type=Path)
