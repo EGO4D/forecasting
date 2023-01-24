@@ -177,10 +177,6 @@ def _get_frames_pts(
                 yield frame
                 yielded_frames += 1
 
-    if yielded_frames<len(video_pts_set):
-        for _ in range(len(video_pts_set)-yielded_frames):
-            yield None
-
 
 def _get_frames(
     video_frames: List[int],
@@ -202,10 +198,36 @@ def _get_frames(
         else 0
     )
 
+    # Get indexes to sort video_frames
+    # This is necessary since frames will
+    # be returned in the order in which
+    # they appear in the container
+    sort_idx = np.argsort(video_frames)
+    rev_sort_idx = np.argsort(sort_idx) # indexes to reverse the order
+
+    video_frames = [video_frames[i] for i in sort_idx]
+
+    # get pts corresponding to frames
+    # two pts may correspond to the same frame
     time_pts_set = [
         frame_index_to_pts(f, video_start, video_pt_diff) for f in video_frames
     ]
+
+    # get rid of duplicates and obtain sampling indexes to sample duplicates
+    time_pts_set, sampling_idx = np.unique(time_pts_set, return_inverse=True)
+
+    time_pts_set = [int(i) for i in time_pts_set]
+
+    # extract the frames - these could be less than the number of frames in case
+    # one frame corresponds to more pts
     frames = list(_get_frames_pts(time_pts_set, container, include_audio, audio_buffer_pts))
+
+    # sample duplicates
+    frames = [frames[i] for i in sampling_idx]
+
+    # reverse order to match input order
+    frames = [frames[i] for i in rev_sort_idx]
+
     assert len(frames) == len(video_frames)
     return frames
 
