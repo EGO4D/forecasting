@@ -14,7 +14,7 @@ parser.add_argument('path_to_annotations', type=Path)
 parser.add_argument('path_to_videos', type=Path)
 parser.add_argument('path_to_output', type=Path)
 parser.add_argument('--fname_format', type=str, default="{video_uid:s}_{frame_number:07d}.jpg")
-parser.add_argument('--jobs', default=1, type=int)
+parser.add_argument('--jobs', default=8, type=int)
 parser.add_argument('--clips', action='store_true')
 
 args = parser.parse_args()
