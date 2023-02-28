@@ -18,6 +18,8 @@ parser.add_argument('path_to_checkpoint', type=Path)
 parser.add_argument('path_to_sta_annotations', type=Path)
 parser.add_argument('path_to_images', type=Path)
 parser.add_argument('path_to_output_json', type=Path)
+parser.add_argument('--fname_format', type=str, default="{video_uid:s}_{frame_number:07d}.jpg")
+parser.add_argument('--num_classes', type=int, default=None)
 
 args = parser.parse_args()
 
@@ -28,7 +30,10 @@ test = json.load(open(args.path_to_sta_annotations / 'fho_sta_test_unannotated.j
 cfg = get_cfg()
 cfg.merge_from_file(model_zoo.get_config_file('COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml'))
 cfg.MODEL.WEIGHTS = str(args.path_to_checkpoint)
-cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(train['noun_categories'])
+if args.num_classes is not None:
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = args.num_classes
+else:
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(train['noun_categories'])
 
 predictor = DefaultPredictor(cfg)
 
@@ -37,8 +42,8 @@ detections = {}
 for anns in [train, val, test]:
     for ann in tqdm(anns['annotations']):
         uid = ann['uid']
-        name = f"{uid}.jpg"
-        img_path = args.path_to_images / name
+        fname = args.fname_format.format(video_uid=ann["video_id"], frame_number=ann["frame"])
+        img_path = args.path_to_images / fname
         img = cv2.imread(str(img_path))
         outputs = predictor(img)['instances'].to('cpu')
 
