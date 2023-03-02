@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import json
 from tqdm import tqdm
-from ego4d.evaluation.sta_metrics import STAMeanAveragePrecision
+from ego4d_forecasting.evaluation.sta_metrics import STAMeanAveragePrecision
 import numpy as np
 
 class EvaluationException(Exception):

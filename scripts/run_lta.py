@@ -4,14 +4,14 @@ import pprint
 
 import sys 
 
-from ego4d.utils import logging
+from ego4d_forecasting.utils import logging
 import numpy as np
 import pytorch_lightning
 import torch
-from ego4d.tasks.long_term_anticipation import MultiTaskClassificationTask, LongTermAnticipationTask
-from ego4d.utils.c2_model_loading import get_name_convert_func
-from ego4d.utils.misc import gpu_mem_usage
-from ego4d.utils.parser import load_config, parse_args
+from ego4d_forecasting.tasks.long_term_anticipation import MultiTaskClassificationTask, LongTermAnticipationTask
+from ego4d_forecasting.utils.c2_model_loading import get_name_convert_func
+from ego4d_forecasting.utils.misc import gpu_mem_usage
+from ego4d_forecasting.utils.parser import load_config, parse_args
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.plugins import DDPPlugin
