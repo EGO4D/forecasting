@@ -65,7 +65,7 @@ SOLVER:
   OPTIMIZING_METHOD: adam
   WEIGHT_DECAY: 1e-4
 MODEL:
-  NUM_CLASSES: [115, 478]
+  NUM_CLASSES: [117, 521]
   ARCH: slowfast
   MODEL_NAME: ForecastingEncoderDecoder
   LOSS_FUNC: cross_entropy

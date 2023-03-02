@@ -48,7 +48,7 @@ class MultiTaskClassificationTask(VideoTask):
             )
         _ = misc.aggregate_split_bn_stats(self.model)
 
-        keys = [x for x in outputs[0].keys() if x is not "loss"]
+        keys = [x for x in outputs[0].keys() if x != "loss"]
         for key in keys:
             metric = torch.tensor([x[key] for x in outputs]).mean()
             self.log(key, metric)

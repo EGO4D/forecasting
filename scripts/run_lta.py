@@ -39,11 +39,14 @@ def init_and_run(run_fn, run_config):
 def copy_and_run_with_config(run_fn, run_config, directory, **cluster_config):
     working_directory = pathlib.Path(directory) / cluster_config["job_name"]
     copy_blacklist = [
+        "cv",
         "data",
         "lightning_logs",
         "slurm",
         "logs",
         "pretrained_models",
+        "Ego4D-Future-Hand-Prediction",
+        "notebooks",
         "checkpoints",
         "experimental",
         ".git",

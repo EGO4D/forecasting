@@ -23,6 +23,34 @@ from ..utils import logging, video_transformer
 logger = logging.get_logger(__name__)
 
 
+from pytorchvideo.data.clip_sampling import ClipSampler, ClipInfo
+from typing import Dict, Any
+
+class CenterClipVideoSampler(ClipSampler):
+    """
+    Samples just a single clip from the center of the video (use for testing)
+    """
+
+    def __init__(
+        self, clip_duration: float
+    ) -> None:
+        super().__init__(clip_duration)
+
+    def __call__(
+        self, last_clip_time: float, video_duration: float, annotation: Dict[str, Any]
+    ) -> ClipInfo:
+
+        clip_start_sec = video_duration / 2 - self._clip_duration / 2
+
+        return ClipInfo(
+            clip_start_sec,
+            clip_start_sec + self._clip_duration,
+            0,
+            0,
+            True,
+        )
+
+
 @DATASET_REGISTRY.register()
 class Ego4dRecognition(torch.utils.data.Dataset):
     def __init__(self, cfg, mode):
@@ -96,6 +124,8 @@ class Ego4dRecognition(torch.utils.data.Dataset):
         return self.dataset.num_videos
 
 
+from .eval_sampler import DistributedEvalSampler
+
 @DATASET_REGISTRY.register()
 class Ego4dLongTermAnticipation(torch.utils.data.Dataset):
     def __init__(self, cfg, mode):
@@ -109,12 +139,18 @@ class Ego4dLongTermAnticipation(torch.utils.data.Dataset):
         sampler = RandomSampler
         if cfg.SOLVER.ACCELERATOR != "dp" and cfg.NUM_GPUS > 1:
             sampler = DistributedSampler
+        if mode == 'test':
+            sampler = DistributedEvalSampler
 
         clip_sampler_type = "uniform" if mode == "test" else "random"
         clip_duration = (
             self.cfg.DATA.NUM_FRAMES * self.cfg.DATA.SAMPLING_RATE
         ) / self.cfg.DATA.TARGET_FPS
         clip_sampler = make_clip_sampler(clip_sampler_type, clip_duration)
+
+        if mode == 'test':
+            clip_sampler = CenterClipVideoSampler(clip_duration)
+
 
         mode_ = 'test_unannotated' if mode=='test' else mode
         # [!!]
