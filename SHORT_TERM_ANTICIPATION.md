@@ -19,7 +19,12 @@
       - [Training the object detector](#training-the-object-detector)
     - [SlowFast model](#slowfast-model)
 
+
+**Please note that this code refers to the old baseline. The code for the new baseline is available here: https://github.com/fpv-iplab/stillfast**
+
 This README reports information on how to train and test the baseline model for the Short-Term Object Interaction Anticipation task part of the forecasting benchmark of the Ego4D dataset. The following sections discuss how to download and prepare the data, download the pre-trained models and train and test the different components of the baseline.
+
+This code has been tested both with v1.0 and v2.0 data. See [here](https://ego4d-data.org/docs/updates/#v20-update) for more information on the v2.0 update.
 
 ## Data
 The first step is to download the data using the CLI avaiable at https://github.com/facebookresearch/Ego4d. 
@@ -28,6 +33,10 @@ The first step is to download the data using the CLI avaiable at https://github.
 Canonical videos and annotations can be downloaded using the following command:
 
 `python -m ego4d.cli.cli --output_directory="~/ego4d_data" --datasets full_scale annotations --benchmarks FHO`
+
+v2.0 annotations can be downloaded with:
+
+`python -m ego4d.cli.cli --output_directory="~/ego4d_data" --datasets annotations --version v2`
 ### Pre-extracting RGB frames
 #### Low-resolution RGB frames
 To facilitate the training and testing of the baseline model, we will pre-extract low-resolution (height=320 pixels) RGB frames from the videos. This is done by using the script `dump_frames_to_lmdb_files.py` located in the `tools/short_term_anticipation/` directory. The script takes as input the path to the videos, the path to the annotations, and the path to the output directory, and creates a lmdb database  for each video. By default, the script extracts the video frames preceeding each train/val/test annotation with a duration of 32 frames (a larger context can be set via the `--context_frames` argument). The extraction process can be launched with the following command:
@@ -35,6 +44,8 @@ To facilitate the training and testing of the baseline model, we will pre-extrac
 `mkdir -p short_term_anticipation/data`
 
 `python tools/short_term_anticipation/dump_frames_to_lmdb_files.py ~/ego4d_data/v1/annotations/ ~/ego4d_data/v1/full_scale/ short_term_anticipation/data/lmdb`
+
+(specify the path to v2.0 annotations if you want to use v2.0)
 
 With the default setting, we expect the output lmdb to occupy about 60GB of disk space.
 #### High-resolution image frames
@@ -51,7 +62,11 @@ The pre-trained models and pre-extracted object detections can be downloaded usi
 
 `python -m ego4d.cli.cli --output_directory="~/ego4d_data" --datasets sta_models`
 
-Once this is done, we need to copy the files to the appropriate paths with the following commands:
+V2.0 models can be downloaded with:
+
+`python -m ego4d.cli.cli --output_directory="~/ego4d_data" --datasets sta_models --version v2`
+
+Once this is done, we need to copy the files to the appropriate paths with the following commands (replace v1 with v2 to use version 2.0):
 
 ```
 mkdir short_term_anticipation/models
@@ -63,6 +78,8 @@ cp ~/ego4d_data/v1/sta_models/slowfast_model.ckpt short_term_anticipation/models
 Pre-extracted object detections downloaded at the previous step can be used to train/test the slowfast model. **Alternatively**, we can produce object detections on the validation and test set using the object detection model with the following command:
 
 `python tools/short_term_anticipation/produce_object_detections.py short_term_anticipation/models/object_detector.pth ~/ego4d_data/v1/annotations/ short_term_anticipation/data/object_frames/ short_term_anticipation/data/object_detections.json`
+
+(specify the path to v2.0 annotations if you want to use v2.0)
 ### Testing the slowfast model
 #### Validation set
 The following command will run the baseline on the validation set:
@@ -83,6 +100,8 @@ python scripts/run_sta.py \
     EGO4D_STA.RGB_LMDB_DIR short_term_anticipation/data/lmdb/ \
     EGO4D_STA.TEST_LISTS "['fho_sta_val.json']"
 ```
+
+(specify the `SLOWFAST_32x1_8x4_R50_v2.yaml` config file if you are using v2.0)
 
 The command will save the results in the `results/short_term_anticipation/baseline_results_val.json` file.
 
@@ -106,6 +125,8 @@ python scripts/run_sta.py \
     EGO4D_STA.TEST_LISTS "['fho_sta_test_unannotated.json']"
 ```
 
+(specify the `SLOWFAST_32x1_8x4_R50_v2.yaml` config file if you are using v2.0)
+
 The command will save the results in the `results/short_term_anticipation/baseline_results_test.json` file. The results can be evaluated with the following the instructions reported in the [Evaluating the results](#evaluating-the-results) section.
 
 
@@ -115,6 +136,8 @@ We provide scripts to evaluate the results of the baseline model. The validation
 ```
 python tools/short_term_anticipation/evaluate_short_term_anticipation_results.py short_term_anticipation/results/short_term_anticipation_results_val.json ~/ego4d_data/v1/annotations/fho_sta_val.json
 ```
+
+(specify the path to v2.0 annotations if you want to use v2.0)
 
 ## Training the baseline
 We provide code and instructions to train the baseline model. The baseline model uses two components:
@@ -134,7 +157,11 @@ To train the object detector, we will first need to produce the COCO-style annot
 
 `python tools/short_term_anticipation/create_coco_annotations.py ~/ego4d_data/v1/annotations/fho_sta_train.json short_term_anticipation/annotations/train_coco.json`
 
+(specify the path to v2.0 annotations if you want to use v2.0)
+
 `python tools/short_term_anticipation/create_coco_annotations.py ~/ego4d_data/v1/annotations/fho_sta_val.json short_term_anticipation/annotations/val_coco.json`
+
+(specify the path to v2.0 annotations if you want to use v2.0)
 
 #### Training the object detector
 The model can be trained using the following command:
@@ -162,6 +189,8 @@ python scripts/run_sta.py \
     EGO4D_STA.OBJ_DETECTIONS short_term_anticipation/data/object_detections.json 
     OUTPUT_DIR short_term_anticipation/models/slowfast_model/
 ```
+
+(specify the path to v2.0 annotations if you want to use v2.0)
 
 After training the model, we can copy the model weights from `short_term_anticipation/models/slowfast_model/lightning_logs/version_x/checkpoints/best_model_checkpoint.ckpt` to `short_term_anticipation/models/slowfast_model.ckpt` and follow the instructions reported at the [Testing the Slow-Fast model](#testing-the-slowfast-model) section. `version_x` and `best_model_checkpoint.ckpt` identify the current version and the best epoch of the model. For instance, the path could be: `short_term_anticipation/models/slowfast_model/lightning_logs/version_0/checkpoints/epoch=22-step=22585.ckpt`.
 
