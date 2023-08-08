@@ -447,7 +447,7 @@ def clip_forecasting_dataset(
 
             # Extract forecasting annotations from video clips.
             for i in range(
-                len(video_clips) - num_future_actions - num_input_actions
+                len(video_clips) - num_future_actions - num_input_actions + 1
             ):
                 input_clips = copy.deepcopy(video_clips[i : i + num_input_actions])
                 forecast_clips = copy.deepcopy(
