@@ -358,7 +358,7 @@ def clip_recognition_dataset(
     if g_pathmgr.isfile(data_path):
         try:
             with g_pathmgr.open(data_path, "r") as f:
-                annotations = json.load(f)
+                annotations = json.load(f)['clips']
         except Exception:
             raise FileNotFoundError(f"{data_path} must be json for Ego4D dataset")
 
